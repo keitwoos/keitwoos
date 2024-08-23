@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>牛丼に紅ショウガをかけるゲーム</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100%;
+            /* 幅を2倍に */
+            height: 500px;
+            /* 高さを2倍に */
+            margin: 20px auto;
+            border: 2px solid #ccc;
+            background-color: #fff;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .bowl {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            /* 幅を2倍に */
+            height: 400px;
+            /* 高さを2倍に */
+            background-image: url('https://th.bing.com/th/id/OIP.7F6zNX6Cu0gsRk4_wcMegAHaHJ?w=192&h=185&c=7&r=0&o=5&dpr=1.3&pid=1.7');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .ginger {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-image: url('https://thumb.ac-illust.com/96/9625e6eeb602778255477e0d74510801_t.jpeg');
+            background-size: cover;
+            background-position: center;
+            cursor: pointer;
+            display: none;
+        }
+
+        .timer,
+        .score {
+            font-size: 24px;
+            margin: 20px;
+        }
+
+        .start-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin: 10px;
+        }
+
+        .start-button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container" id="gameContainer">
+        <div class="bowl"></div>
+        <div class="ginger" id="ginger"></div>
+    </div>
+    <div class="timer" id="timer">残り時間: 30秒</div>
+    <div class="score" id="score">紅ショウガの量: 0</div>
+    <button class="start-button" onclick="startGame()">ゲームスタート</button>
+
+    <script>
+        let timer;
+        let timeLeft = 30; // ゲームの時間（秒）
+        let score = 0; // 紅ショウガの量
+        let ginger = document.getElementById('ginger');
+        let bowl = document.querySelector('.bowl');
+        let gameContainer = document.querySelector('.game-container');
+        let isDragging = false;
+        let gingerCount = 0; // 紅ショウガの数
+
+        function startGame() {
+            // ゲーム開始
+            timeLeft = 30;
+            score = 0;
+            gingerCount = 0;
+            document.getElementById('timer').innerText = `残り時間: ${timeLeft}秒`;
+            document.getElementById('score').innerText = `紅ショウガの量: ${score}`;
+
+            // タイマーをセット
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').innerText = `残り時間: ${timeLeft}秒`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    document.getElementById('timer').innerText = '時間切れ！';
+                }
+            }, 1000);
+
+            // 初期の紅ショウガを左側に表示
+            createGinger();
+        }
+
+        function createGinger() {
+            ginger.style.display = 'block';
+            ginger.style.left = '0px'; // 牛丼の左側に表示
+            ginger.style.top = '0px'; // 初期位置は牛丼の左上
+
+            ginger.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                ginger.style.zIndex = 1000; // 紅ショウガを最前面に
+                moveGinger(e);
+            });
+
+            gameContainer.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    moveGinger(e);
+                }
+            });
+
+            gameContainer.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    ginger.style.zIndex = 1; // 元の位置に戻す
+                    dropGinger();
+                    createGinger(); // 新しい紅ショウガを生成
+                }
+            });
+        }
+
+        function moveGinger(e) {
+            const gameContainerRect = gameContainer.getBoundingClientRect();
+            const gingerRect = ginger.getBoundingClientRect();
+
+            let x = e.clientX - gameContainerRect.left - (gingerRect.width / 2);
+            let y = e.clientY - gameContainerRect.top - (gingerRect.height / 2);
+
+            // ゲームコンテナの境界内に収める
+            x = Math.max(0, Math.min(x, gameContainerRect.width - gingerRect.width));
+            y = Math.max(0, Math.min(y, gameContainerRect.height - gingerRect.height));
+
+            ginger.style.left = `${x}px`;
+            ginger.style.top = `${y}px`;
+        }
+
+        function dropGinger() {
+            const bowlRect = bowl.getBoundingClientRect();
+            const gingerRect = ginger.getBoundingClientRect();
+
+            // 牛丼の上に紅ショウガが置かれたかを判定
+            if (gingerRect.left >= bowlRect.left &&
+                gingerRect.right <= bowlRect.right &&
+                gingerRect.top >= bowlRect.top &&
+                gingerRect.bottom <= bowlRect.bottom) {
+                score++;
+                document.getElementById('score').innerText = `紅ショウガの量: ${score}`;
+            }
+
+            // 現在の紅ショウガを維持し、次の紅ショウガを生成
+            gingerCount++;
+        }
+    </script>
+</body>
+
+</html>
